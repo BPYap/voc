@@ -12,6 +12,7 @@ public class types extends org.python.types.Module {
         // FrameType = org.python.types.Type.pythonType(org.python.types.Frame.class);
         FunctionType = org.python.types.Type.pythonType(org.python.types.Function.class);
         GeneratorType = org.python.types.Type.pythonType(org.python.types.Generator.class);
+        CoroutineType = org.python.types.Type.pythonType(org.python.types.Coroutine.class);
         // GetSetDescriptorType = org.python.types.Type.pythonType(org.python.types.GetSetDescriptor.class);
         // LambdaType = org.python.types.Type.pythonType(org.python.types.Lambda.class);
         // MappingProxyType = org.python.types.Type.pythonType(org.python.types.MappingProxy.class);
@@ -41,6 +42,8 @@ public class types extends org.python.types.Module {
     public static org.python.Object FunctionType;
     @org.python.Attribute
     public static org.python.Object GeneratorType;
+    @org.python.Attribute
+    public static org.python.Object CoroutineType;
 
     // @org.python.Attribute
     // public static org.python.Object GetSetDescriptorType;
