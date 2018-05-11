@@ -10,6 +10,8 @@ public class Function extends org.python.types.Object implements org.python.Call
     public static final int CO_NESTED = 0x10;
     public static final int CO_GENERATOR = 0x20;
     public static final int CO_NOFREE = 0x40;
+    public static final int CO_COROUTINE = 0x80;
+    public static final int CO_ITERABLE_COROUTINE = 0x100;
     org.python.types.Type.Origin origin;
     org.python.types.Str name;
     org.python.types.Code code;
