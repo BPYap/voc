@@ -1,7 +1,6 @@
 package org.python.types;
 
-public class Coroutine extends org.python.types.Object {
-    public org.python.types.Generator gen;
+public class Coroutine extends org.python.types.Generator {
 
     private static boolean _DEBUG = false;
 
@@ -10,7 +9,6 @@ public class Coroutine extends org.python.types.Object {
         java.lang.reflect.Method expression,
         java.util.Map<java.lang.String, org.python.Object> stack
     ) {
-        this.gen = new Generator(name, expression, stack);
+        super(name, expression, stack);
     }
-
 }
