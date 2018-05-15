@@ -6,6 +6,8 @@ public class Generator extends org.python.types.Object {
     public int yield_point;
     public java.util.Map<java.lang.String, org.python.Object> stack;
 
+    public org.python.types.Object message; // holds the received object when 'send' method is called
+
     public int hashCode() {
         return this.expression.hashCode();
     }
@@ -32,6 +34,12 @@ public class Generator extends org.python.types.Object {
         // }
         this.yield_point = yield_point;
         this.stack = stack;
+    }
+
+    public void send(java.util.Map<java.lang.String, org.python.Object> stack, int yield_point,
+                     org.python.types.Object message) {
+        this.message = message;
+        this.yield(stack, yield_point);
     }
 
     @org.python.Method(
