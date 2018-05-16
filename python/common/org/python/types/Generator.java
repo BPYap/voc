@@ -39,6 +39,7 @@ public class Generator extends org.python.types.Object {
     public void send(java.util.Map<java.lang.String, org.python.Object> stack, int yield_point,
                      org.python.types.Object message) {
         this.message = message;
+        //TODO: advance yield_point and manage stack
         this.yield(stack, yield_point);
     }
 
