@@ -79,6 +79,19 @@ class ExceptionTests(TranspileTestCase):
             print('Done.')
             """)
 
+    @expectedFailure
+    def test_raise_custom_exception_with_arg(self):
+        self.assertCodeExecution("""
+            class MyException(Exception):
+                pass
+
+            try:
+                raise MyException("This is string argument")
+            except MyException:
+                print("Got a custom exception")
+            print('Done.')
+            """)
+
     def test_raising_exceptions_multiple_args(self):
         self.assertCodeExecution("""
             for exc in [KeyError, ValueError, TypeError]:
