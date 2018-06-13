@@ -124,4 +124,4 @@ class ExceptionTests(TranspileTestCase):
                         pass
 
                     """
-            })
+            }, run_in_function=False)
