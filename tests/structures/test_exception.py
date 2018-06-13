@@ -105,6 +105,64 @@ class ExceptionTests(TranspileTestCase):
                     print(e, e.args)
         """)
 
+    def test_raise_nested_custom_exception(self):
+        self.assertCodeExecution(
+            """
+            from example import *
+
+            try:
+                raise Parent.MyException()
+            except Parent.MyException:
+                print("Got a custom exception")
+            print('Done.')
+            """,
+            extra_code={
+                'example':
+                    """
+                    class Parent():
+                        class MyException(Exception):
+                            pass
+                    """
+            }, run_in_function=False)
+            
+        self.assertCodeExecution(
+            """
+            import example
+
+            try:
+                raise example.Parent.MyException()
+            except example.Parent.MyException:
+                print("example is not defined")
+            print('Done.')
+            """,
+            extra_code={
+                'example':
+                    """
+                    class Parent():
+                        class MyException(Exception):
+                            pass
+                    """
+            }, run_in_function=False)
+
+        self.assertCodeExecution(
+            """
+            import example as custom
+
+            try:
+                raise custom.Parent.MyException()
+            except custom.Parent.MyException:
+                print("example is not defined")
+            print('Done.')
+            """,
+            extra_code={
+                'example':
+                    """
+                    class Parent():
+                        class MyException(Exception):
+                            pass
+                    """
+            }, run_in_function=False)
+
     def test_raise_custom_exception_import_from(self):
         self.assertCodeExecution(
             """
@@ -124,3 +182,42 @@ class ExceptionTests(TranspileTestCase):
 
                     """
             }, run_in_function=False)
+
+    def test_import_namespace(self):
+        self.assertCodeExecution(
+            """
+            from example import *
+
+            try:
+                raise example.MyException()
+            except:
+                print("example is not defined")
+            print('Done.')
+            """,
+            extra_code={
+                'example':
+                    """
+                    class MyException(Exception):
+                        pass
+
+                    """
+            }, run_in_function=False)
+
+        self.assertCodeExecution(
+            """
+            import example
+
+            try:
+                raise MyException()
+            except:
+                print("MyException is not defined")
+            print('Done.')
+            """,
+            extra_code={
+                'example':
+                    """
+                    class MyException(Exception):
+                        pass
+
+                    """
+            })
