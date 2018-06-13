@@ -105,14 +105,13 @@ class ExceptionTests(TranspileTestCase):
                     print(e, e.args)
         """)
 
-    @expectedFailure
     def test_raise_custom_exception_import_from(self):
         self.assertCodeExecution(
             """
             from example import *
 
             try:
-                raise MyException("This is the exception")
+                raise MyException()
             except MyException:
                 print("Got a custom exception")
             print('Done.')
