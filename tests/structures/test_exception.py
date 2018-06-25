@@ -164,6 +164,7 @@ class ExceptionTests(TranspileTestCase):
                     """
             }, run_in_function=False)
 
+    @expectedFailure
     def test_raise_custom_exception_import_from(self):
         self.assertCodeExecution(
             """
@@ -184,7 +185,6 @@ class ExceptionTests(TranspileTestCase):
                     """
             }, run_in_function=False)
 
-    @expectedFailure
     def test_import_namespace(self):
         self.assertCodeExecution(
             """
