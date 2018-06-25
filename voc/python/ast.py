@@ -1,8 +1,6 @@
 import ast
-import os
 import sys
 import traceback
-import tools.compile_stdlib as compile_stdlib
 
 from ..java import opcodes as JavaOpcodes
 from .modules import Module
@@ -109,95 +107,6 @@ class LocalsVisitor(ast.NodeVisitor):
         pass
 
 
-class ClassVisitor(ast.NodeVisitor):
-    """Visits class definition given an ImportFrom node
-    """
-    def __init__(self, node):
-        super().__init__()
-        self.symbol_namespace = {}
-        # TODO: handle node.level
-        self.module_path = node.module
-
-        for alias in node.names:
-            if alias.name == '*':
-                break
-            self.module_path += '.' + alias.name
-
-        self.module_path = self.module_path.replace('.', '/') + '.py'
-        print("ImportFrom module path: " + self.module_path)
-        self.context = Module('python', self.module_path)
-
-        # TODO: check compile_stdlib.module_list("common", False) for built-in
-
-    def get_classref(self):
-        self.traverse_ast(self.module_path)
-        return self.symbol_namespace
-
-    def traverse_ast(self, file_or_dir):
-        if os.path.isfile(file_or_dir):
-            with open(file_or_dir, encoding='utf-8') as source:
-                ast_module = ast.parse(source.read(), mode='exec')
-                try:
-                    self.visit(ast_module)
-                except Exception:
-                    print("Problem occurred in " + file_or_dir)
-                    print('Node: ' + dump(ast_module))
-                    raise
-        elif os.path.isdir(file_or_dir):
-            for root, dirs, files in os.walk(file_or_dir, followlinks=True):
-                for filename in files:
-                    if os.path.splitext(filename)[1] == '.py':
-                        source_file = os.path.join(root, filename)
-                        with open(source_file, encoding='utf-8') as source:
-                            ast_module = ast.parse(source.read(), mode='exec')
-                            try:
-                                self.visit(ast_module)
-                            except Exception:
-                                print("Problem occurred in " + source_file)
-                                print('Node: ' + dump(ast_module))
-                                raise
-        else:
-            raise Exception("Unknown source file: %s" % file_or_dir)
-
-    def visit_ClassDef(self, node):
-        # Construct a class.
-        print("classsss:" + node.name)
-        class_name = node.name
-
-        name_visitor = NameVisitor()
-
-        extends = None
-        implements = []
-
-        for keyword in node.keywords:
-            key = keyword.arg
-            value = keyword.value
-
-            if key == "metaclass":
-                raise Exception("Can't handle metaclasses")
-            elif key == "extends":
-                extends = name_visitor.evaluate(value).ref_name
-            elif key == "implements":
-                if isinstance(value, ast.List):
-                    implements = [
-                        name_visitor.visit(v).ref_name
-                        for v in value.elts
-                    ]
-                else:
-                    implements = [name_visitor.evaluate(value).ref_name]
-            else:
-                raise Exception("Unknown meta keyword " + str(key))
-
-        for base in node.bases:
-            self.visit(base)
-
-        for node in node.body:
-            self.visit(node)
-
-        klass = self.context.add_class(class_name, extends, implements)
-        self.symbol_namespace[class_name] = klass.descriptor
-
-
 class Visitor(ast.NodeVisitor):
     def __init__(self, namespace, filename, verbosity=1):
         super().__init__()
@@ -212,7 +121,6 @@ class Visitor(ast.NodeVisitor):
         self.current_exc_name = []
 
         self.symbol_namespace = {}
-        self.imported_module = {}  # {alias.asname: alias.name} if alias.asname else {alias.name: alias.name}
         self.code_objects = {}
 
     @property
@@ -231,50 +139,7 @@ class Visitor(ast.NodeVisitor):
         self.context.visitor_teardown()
         self._context.pop()
 
-    def full_classref(self, node, default_prefix=None):
-        """Construct fully qualified name from a Name node or Attribute node
-        """
-        path = ''
-        while True:
-            if isinstance(node, ast.Name):
-                path += node.id
-                break
-            elif isinstance(node, ast.Attribute):
-                path += node.attr + '.'
-                node = node.value
-            else:
-                return None
-
-        path = '.'.join(path.split('.')[::-1])  # reverse the path string
-        name = path.split('.')[-1]
-
-        print('name: ' + name)
-        print('path: ' + path)
-
-        # name is either:
-        #   1. Imported using `import x` or
-        #   2. Imported using `import x as alias`
-        module_path = path.split('.')[:-1]
-        class_path = []
-        while len(module_path) > 0:
-            # start from longest possible module path
-            module_name = '.'.join(module_path)
-            if module_name in self.imported_module.keys():
-                # TODO: get namespace of transpiler
-                full_classref = 'python/' + self.imported_module[module_name].replace('.', '/') + '/'
-                if class_path:
-                    for klass in class_path:
-                        full_classref += klass + '$'
-                else:
-                    full_classref += '.'
-                return full_classref + name
-            else:
-                class_path.append(module_path.pop())
-
-        # name is either:
-        #   1. Defined as Python built-in or
-        #   2. Defined in current module or
-        #   3. Imported by `import *`
+    def full_classref(self, name, default_prefix=None):
         return self.symbol_namespace.get(name, '.'.join([default_prefix, name])).replace('.', '/')
 
     def extract_code_objects(self, compiled):
@@ -473,7 +338,7 @@ class Visitor(ast.NodeVisitor):
             self.visit(child)
         self.pop_context()
 
-        self.symbol_namespace[class_name] = klass.descriptor
+        self.symbol_namespace[class_name] = klass.class_name
 
     @node_visitor
     def visit_Return(self, node):
@@ -798,8 +663,9 @@ class Visitor(ast.NodeVisitor):
                 ALOAD_name(self.current_exc_name[-1]),
             )
         else:
-            exception = self.full_classref(node.exc, default_prefix='org.python.exceptions')
-            if exception:
+            if isinstance(node.exc, ast.Name):
+                # handle "raise ValueError" as if "raise ValueError()"
+                exception = self.full_classref(node.exc.id, default_prefix='org.python.exceptions')
                 self.context.add_opcodes(
                     java.New(exception),
                     java.Init(exception)
@@ -912,13 +778,11 @@ class Visitor(ast.NodeVisitor):
             )
             if alias.asname:
                 self.context.store_name(alias.asname)
-                self.imported_module[alias.asname] = alias.name
             else:
                 # The alias will be the fully dotted path. The import
                 # will return the top level module. Store the top level
                 # module as the top level path.
                 self.context.store_name(alias.name.split('.')[0])
-                self.imported_module[alias.name] = alias.name
 
     @node_visitor
     def visit_ImportFrom(self, node):
@@ -990,8 +854,6 @@ class Visitor(ast.NodeVisitor):
             self.context.add_opcodes(
                 JavaOpcodes.POP(),
             )
-
-        self.symbol_namespace.update(ClassVisitor(node).get_classref())
 
     @node_visitor
     def visit_Global(self, node):
@@ -2528,11 +2390,11 @@ class Visitor(ast.NodeVisitor):
         # expr? type, identifier? name, stmt* body):
         if isinstance(node.type, ast.Tuple):
             exception = [
-                self.full_classref(exc, default_prefix='org.python.exceptions')
+                self.full_classref(exc.id, default_prefix='org.python.exceptions')
                 for exc in node.type.elts
             ]
-        elif isinstance(node.type, ast.Name) or isinstance(node.type, ast.Attribute):
-            exception = self.full_classref(node.type, default_prefix='org.python.exceptions')
+        elif node.type:
+            exception = self.full_classref(node.type.id, default_prefix='org.python.exceptions')
         else:
             exception = None
 
