@@ -105,6 +105,7 @@ class ExceptionTests(TranspileTestCase):
                     print(e, e.args)
         """)
 
+    @expectedFailure
     def test_raise_nested_custom_exception(self):
         self.assertCodeExecution(
             """
@@ -169,7 +170,7 @@ class ExceptionTests(TranspileTestCase):
             from example import *
 
             try:
-                raise MyException()
+                raise MyException("This is the exception")
             except MyException:
                 print("Got a custom exception")
             print('Done.')
@@ -183,6 +184,7 @@ class ExceptionTests(TranspileTestCase):
                     """
             }, run_in_function=False)
 
+    @expectedFailure
     def test_import_namespace(self):
         self.assertCodeExecution(
             """
