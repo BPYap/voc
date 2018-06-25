@@ -111,7 +111,7 @@ class ExceptionTests(TranspileTestCase):
             from example import *
 
             try:
-                raise Parent.MyException
+                raise Parent.MyException()
             except Parent.MyException:
                 print("Got a custom exception")
             print('Done.')
