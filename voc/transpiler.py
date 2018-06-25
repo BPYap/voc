@@ -34,10 +34,11 @@ def transpile(input, prefix='.', outdir=None, namespace='python', verbosity=0):
 
 
 class Transpiler:
-    def __init__(self, namespace="python", verbosity=0):
+    def __init__(self, namespace="python", verbosity=0, outdir=None):
         self.namespace = namespace
         self.classfiles = []
         self.verbosity = verbosity
+        self.outdir = outdir
 
     def write(self, outdir):
         # Create directory tree to store classfile
@@ -61,6 +62,12 @@ class Transpiler:
             with open(classfilename, 'wb') as out:
                 javaclassfile.write(out)
 
+    def write_source(self, filename, code):
+        # creates a temporary .py file to resolve import from
+        filepath = self.outdir + os.path.sep + "%s.py" % filename.replace('.', os.path.sep)
+        with open(filepath, 'w') as f:
+            f.write(code)
+
     def transpile(self, filename, ast_module, prefix):
         "Transpile a Python source file into class files"
         # Determine what portion of the filename is part of the
@@ -75,9 +82,9 @@ class Transpiler:
     def transpile_string(self, filename, code_string):
         "Transpile a string containing Python code into class files"
         ast_module = ast.parse(code_string, mode='exec')
-        self.transpile_code(filename, ast_module)
+        self.transpile_code(filename, ast_module, from_string=True)
 
-    def transpile_code(self, filename, ast_module):
+    def transpile_code(self, filename, ast_module, from_string=False):
         "Transpile a code object into class files"
         # Convert the AST into Java opcodes
         if self.verbosity > 1:
@@ -85,7 +92,11 @@ class Transpiler:
             print(dump(ast_module))
             print('=' * 75)
 
-        module = Visitor(self.namespace, filename, verbosity=self.verbosity).visit(ast_module)
+        visitor = Visitor(self.namespace, filename, verbosity=self.verbosity)
+        if from_string:
+            visitor.working_directory = self.outdir
+
+        module = visitor.visit(ast_module)
 
         # Transpile the module code, adding any classfiles generated
         # to the list to be exported.
