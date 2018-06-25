@@ -116,24 +116,22 @@ class ClassVisitor(ast.NodeVisitor):
         super().__init__()
         self.symbol_namespace = {}
         # TODO: handle node.level
-        self.module_path = node.module
+        self.module_name = node.module
 
         for alias in node.names:
             if alias.name == '*':
                 break
-            self.module_path += '.' + alias.name
+            self.module_name += '.' + alias.name
 
-        self.module_path = self.module_path.replace('.', '/') + '.py'
-        print("ImportFrom module path: " + self.module_path)
-        self.context = Module('python', self.module_path)
-
+        self.module_path = 'python/' + self.module_name
+        self.module_name = self.module_name.replace('.', '/') + '.py'
         # TODO: check compile_stdlib.module_list("common", False) for built-in
 
-    def get_classref(self):
-        self.traverse_ast(self.module_path)
+    def get_symbol_namespace(self):
+        self.parse_module(self.module_name)
         return self.symbol_namespace
 
-    def traverse_ast(self, file_or_dir):
+    def parse_module(self, file_or_dir):
         if os.path.isfile(file_or_dir):
             with open(file_or_dir, encoding='utf-8') as source:
                 ast_module = ast.parse(source.read(), mode='exec')
@@ -160,42 +158,25 @@ class ClassVisitor(ast.NodeVisitor):
             raise Exception("Unknown source file: %s" % file_or_dir)
 
     def visit_ClassDef(self, node):
-        # Construct a class.
-        print("classsss:" + node.name)
+        # extracts fully qualified path of class
         class_name = node.name
+        self.symbol_namespace[class_name] = self.module_path + '/' + class_name
 
-        name_visitor = NameVisitor()
-
-        extends = None
-        implements = []
-
-        for keyword in node.keywords:
-            key = keyword.arg
-            value = keyword.value
-
-            if key == "metaclass":
-                raise Exception("Can't handle metaclasses")
-            elif key == "extends":
-                extends = name_visitor.evaluate(value).ref_name
-            elif key == "implements":
-                if isinstance(value, ast.List):
-                    implements = [
-                        name_visitor.visit(v).ref_name
-                        for v in value.elts
-                    ]
-                else:
-                    implements = [name_visitor.evaluate(value).ref_name]
-            else:
-                raise Exception("Unknown meta keyword " + str(key))
-
-        for base in node.bases:
-            self.visit(base)
-
-        for node in node.body:
-            self.visit(node)
-
-        klass = self.context.add_class(class_name, extends, implements)
-        self.symbol_namespace[class_name] = klass.descriptor
+        # handles nested class
+        node_body = node.body
+        parents = [class_name]
+        pending_list = []
+        while len(node_body) > 0:
+            node = node_body.pop(0)
+            if isinstance(node, ast.ClassDef):
+                class_path = '$'.join(parents) + '$' + node.name
+                pending_list.append(node_body)  # adds previous node body to pending_list
+                node_body = node.body  # goes deeper into current node body
+                parents.append(node.name)
+                self.symbol_namespace[node.name] = self.module_path + '/' + class_path
+            elif len(node_body) == 0 and len(pending_list) > 0:
+                node_body = pending_list.pop(0)
+                parents.pop()
 
 
 class Visitor(ast.NodeVisitor):
@@ -991,7 +972,7 @@ class Visitor(ast.NodeVisitor):
                 JavaOpcodes.POP(),
             )
 
-        self.symbol_namespace.update(ClassVisitor(node).get_classref())
+        self.symbol_namespace.update(ClassVisitor(node).get_symbol_namespace())
 
     @node_visitor
     def visit_Global(self, node):
