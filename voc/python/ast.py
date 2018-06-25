@@ -112,15 +112,10 @@ class LocalsVisitor(ast.NodeVisitor):
 class ClassVisitor(ast.NodeVisitor):
     """Visits class definition given an ImportFrom node
     """
-    def __init__(self, node, working_directory=None):
+    def __init__(self, node):
         super().__init__()
         self.symbol_namespace = {}
-
-        self.skip = False  # TODO: delete this when other TODOs are resolved
-        if node.level > 1:
-            # TODO: handle node.level
-            self.skip = True
-
+        # TODO: handle node.level
         self.module_name = node.module
 
         for alias in node.names:
@@ -128,20 +123,12 @@ class ClassVisitor(ast.NodeVisitor):
                 break
             self.module_name += '.' + alias.name
 
-        # TODO: get namespace from transpiler
         self.module_path = 'python/' + self.module_name
-
-        # resolve absolute path to the source file of imported module
-        if working_directory:
-            self.file_path = working_directory + os.path.sep + self.module_name.replace('.', os.path.sep) + '.py'
-        else:
-            self.file_path = os.getcwd() + os.path.sep + self.module_name.replace('.', os.path.sep) + '.py'
-            # TODO: check compile_stdlib.module_list("common", False) for built-in
+        self.module_name = self.module_name.replace('.', '/') + '.py'
+        # TODO: check compile_stdlib.module_list("common", False) for built-in
 
     def get_symbol_namespace(self):
-        if self.skip:
-            return
-        self.parse_module(self.file_path)
+        self.parse_module(self.module_name)
         return self.symbol_namespace
 
     def parse_module(self, file_or_dir):
@@ -198,7 +185,6 @@ class Visitor(ast.NodeVisitor):
         self.namespace = namespace
         self.filename = filename
         self.verbosity = verbosity
-        self.working_directory = None
 
         self._current_line = None
         self._context = []
@@ -986,7 +972,7 @@ class Visitor(ast.NodeVisitor):
                 JavaOpcodes.POP(),
             )
 
-        self.symbol_namespace.update(ClassVisitor(node, self.working_directory).get_symbol_namespace())
+        self.symbol_namespace.update(ClassVisitor(node).get_symbol_namespace())
 
     @node_visitor
     def visit_Global(self, node):
