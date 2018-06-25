@@ -561,22 +561,9 @@ class TranspileTestCase(TestCase):
         with capture_output(redirect_stderr=False):
             transpiler.transpile_string("test.py", main_code)
 
-            extra_files = []
             if extra_code:
                 for name, code in extra_code.items():
-                    # creates a temporary .py file to resolve import from
-                    filepath = "%s.py" % name.replace('.', os.path.sep)
-                    with open(filepath, 'w') as f:
-                        f.write(adjust(code))
-                        extra_files.append(filepath)
-
                     transpiler.transpile_string("%s.py" % name.replace('.', os.path.sep), adjust(code))
-
-            transpiler.transpile_string("test.py", main_code)
-
-            # removes the temporary .py files after main_code is transpiled
-            for temp_file in extra_files:
-                os.remove(temp_file)
 
         transpiler.write(self.temp_dir)
 
