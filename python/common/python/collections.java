@@ -177,17 +177,31 @@ public class collections extends org.python.types.Module {
     }
 
     @org.python.Method(
-            __doc__ = "",
+            __doc__ =
+                "deque([iterable[, maxlen]]) --> deque object\n" +
+                "\n" +
+                "A list-like sequence optimized for data accesses near its endpoints.\n" +
+                "\n",
             default_args = {"iterable", "maxlen"}
     )
     public static org.python.Object deque(org.python.Object iterable, org.python.Object maxlen) {
         if (iterable == null) {
             iterable = org.python.types.NoneType.NONE;
+        } else {
+            try {
+                org.Python.iter(iterable);
+            } catch (org.python.exceptions.TypeError e) {
+                throw new org.python.exceptions.TypeError("'" + iterable.typeName() + "' object is not iterable");
+            }
         }
+
         if (maxlen == null) {
             maxlen = org.python.types.NoneType.NONE;
+        } else if (!(maxlen instanceof org.python.types.Int)){
+            throw new org.python.exceptions.TypeError("an integer is required");
         }
-        throw new org.python.exceptions.NotImplementedError("deque has not been implemented");
+
+        return new org.python.stdlib.collections.Deque(iterable, maxlen);
     }
 
 }

@@ -302,6 +302,8 @@ public class Int extends org.python.types.Object {
             return other.__mul__(this);
         } else if (other instanceof org.python.types.Tuple) {
             return other.__mul__(this);
+        } else if (other instanceof org.python.stdlib.collections.Deque) {
+            return other.__mul__(this);
         } else if (other instanceof org.python.types.Bytes) {
             byte[] other_value = ((org.python.types.Bytes) other).value;
             int value = Math.max(0, (int) this.value);
