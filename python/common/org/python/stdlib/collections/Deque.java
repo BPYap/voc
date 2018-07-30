@@ -13,12 +13,27 @@ public class Deque extends org.python.types.Object {
         this.linkedList = null;
     }
 
-    public Deque(org.python.Object iterable, org.python.Object maxlen) {
-        this.linkedList = new java.util.LinkedList<org.python.Object>();
-        this.maxlen = maxlen;
+    @org.python.Method(
+            __doc__ =
+                "deque([iterable[, maxlen]]) --> deque object\n" +
+                "\n" +
+                "A list-like sequence optimized for data accesses near its endpoints.\n" +
+                "\n",
+            default_args = {"iterable", "maxlen"}
+    )
+    public Deque(org.python.Object[] args, java.util.Map<java.lang.String, org.python.Object> kwargs) {
+        if (args[1] != null) {
+            this.maxlen = args[1];
+            if (!(this.maxlen instanceof org.python.types.Int)) {
+                throw new org.python.exceptions.TypeError("an integer is required");
+            }
+        } else {
+            this.maxlen = org.python.types.NoneType.NONE;
+        }
 
-        if (!(iterable instanceof org.python.types.NoneType)) {
-            org.python.Object iter = org.Python.iter(iterable);
+        this.linkedList = new java.util.LinkedList<org.python.Object>();
+        if (args[0] != null) {
+            org.python.Object iter = org.Python.iter(args[0]);
             try {
                 while (true) {
                     this.append(iter.__next__());
@@ -82,7 +97,7 @@ public class Deque extends org.python.types.Object {
             args = {"index"}
     )
     public org.python.Object __getitem__(org.python.Object index) {
-        try{
+        try {
             int idx;
             if (index instanceof org.python.types.Bool) {
                 idx = (int) ((org.python.types.Bool) index).__int__().value;
@@ -177,10 +192,10 @@ public class Deque extends org.python.types.Object {
     }
 
     @org.python.Method(
-        __doc__ = "Reverse the list in place and returns\n" +
-            "an iterator that iterates over all the objects\n" +
-            "in the list in reverse order. Does not\n" +
-            "modify the original list."
+            __doc__ = "Reverse the list in place and returns\n" +
+                "an iterator that iterates over all the objects\n" +
+                "in the list in reverse order. Does not\n" +
+                "modify the original list."
     )
     public org.python.Object __reversed__() {
         org.python.types.ReverseIterator iter = new org.python.types.ReverseIterator();
@@ -189,16 +204,16 @@ public class Deque extends org.python.types.Object {
     }
 
     @org.python.Method(
-        __doc__ = "Return key in self.",
-        args = {"item"}
+            __doc__ = "Return key in self.",
+            args = {"item"}
     )
     public org.python.Object __contains__(org.python.Object item) {
         return org.python.types.Bool.getBool(this.linkedList.contains(item));
     }
 
     @org.python.Method(
-        __doc__ = "Return self+value.",
-        args = {"other"}
+            __doc__ = "Return self+value.",
+            args = {"other"}
     )
     public org.python.Object __add__(org.python.Object other) {
         if (org.Python.VERSION < 0x03050000) {
@@ -222,8 +237,8 @@ public class Deque extends org.python.types.Object {
     }
 
     @org.python.Method(
-        __doc__ = "Return self*value.n",
-        args = {"other"}
+            __doc__ = "Return self*value.n",
+            args = {"other"}
     )
     public org.python.Object __mul__(org.python.Object other) {
         if (org.Python.VERSION < 0x03050000) {
@@ -257,8 +272,8 @@ public class Deque extends org.python.types.Object {
     }
 
     @org.python.Method(
-        __doc__ = "Implement self*=value.",
-        args = {"other"}
+            __doc__ = "Implement self*=value.",
+            args = {"other"}
     )
     public org.python.Object __imul__(org.python.Object other) {
         if (org.Python.VERSION < 0x03050000) {
@@ -311,7 +326,7 @@ public class Deque extends org.python.types.Object {
         this.linkedList.addFirst(x);
 
         if (!(this.maxlen instanceof org.python.types.NoneType) &&
-            this._len() > ((org.python.types.Int) this.maxlen).value) {
+                this._len() > ((org.python.types.Int) this.maxlen).value) {
             this.linkedList.removeLast();
         }
     }
@@ -399,7 +414,7 @@ public class Deque extends org.python.types.Object {
 
         int index = -1;
 
-        if (args.value.isEmpty()){
+        if (args.value.isEmpty()) {
             index = this.linkedList.indexOf(x);
         } else {
             try {
@@ -524,5 +539,4 @@ public class Deque extends org.python.types.Object {
             }
         }
     }
-
 }

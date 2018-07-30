@@ -30,7 +30,7 @@ public class collections extends org.python.types.Module {
         // UserList = org.python.types.Type.pythonTypeorg.python.stdlib.collections.UserList.class);
         // UserString = org.python.types.Type.pythonTypeorg.python.stdlib.collections.UserString.class);
         defaultdict = org.python.types.Type.pythonType(org.python.stdlib.collections.DefaultDict.class);
-        // deque = org.python.stdlib.collections.Deque.class;
+        deque = org.python.types.Type.pythonType(org.python.stdlib.collections.Deque.class);
     }
 
     // @org.python.Attribute
@@ -47,8 +47,8 @@ public class collections extends org.python.types.Module {
     // public static org.python.Object UserString;
     @org.python.Attribute
     public static org.python.Object defaultdict;
-    // @org.python.Attribute
-    // public static org.python.Object deque;
+    @org.python.Attribute
+    public static org.python.Object deque;
 
     @org.python.Attribute()
     public static org.python.Object __file__ = new org.python.types.Str("python/common/python/collections.java");
