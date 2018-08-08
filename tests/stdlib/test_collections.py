@@ -596,7 +596,7 @@ class DequeTests(TranspileTestCase):
                     print("should not print this")
                 except TypeError as e:
                     print(e)
-            except TypeErrorError as e:
+            except TypeError as e:
                 # not implemented in Python version < 3.5
                 print(e)
             """)
