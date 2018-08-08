@@ -3,6 +3,10 @@ package org.python.stdlib.collections;
 // TODO: support copy.copy(Deque) and copy.deepcopy(Deque) and pickling
 
 public class Deque extends org.python.types.Object {
+    static {
+        org.python.types.Type.declarePythonType(Deque.class, "collections.deque", null, null);
+    }
+
     @org.python.Attribute
     public org.python.Object maxlen;
 
@@ -460,7 +464,7 @@ public class Deque extends org.python.types.Object {
     )
     public void insert(org.python.Object i, org.python.Object x) {
         if (org.Python.VERSION < 0x03050000) {
-            throw new org.python.exceptions.AttributeError("'collections.deque' object has no attribute 'index'");
+            throw new org.python.exceptions.AttributeError("'collections.deque' object has no attribute 'insert'");
         }
 
         if (!(this.maxlen instanceof org.python.types.NoneType) &&
