@@ -565,13 +565,16 @@ class DequeTests(TranspileTestCase):
                 except TypeError as e:
                     print(e)
 
-                try:
-                    print(d1 + 123)
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
             except TypeError as e:
                 # not implemented in Python version < 3.5
+                print(e)
+
+            # TODO: this can be moved into try-catch suite above once 
+            #       #900 is resolved
+            try:
+                print(d1 + 123)
+                print("should not print this")
+            except TypeError as e:
                 print(e)
             """)
 
@@ -579,11 +582,12 @@ class DequeTests(TranspileTestCase):
         self.assertCodeExecution("""
             import collections
 
+            d = collections.deque([1, 2, 3])
             try:
-                d = collections.deque([1, 2, 3])
                 print(d * 5)
                 print(d * -5)
                 print(5 * d)
+                print(d * 123)
 
                 try:
                     print(d * "string")
@@ -591,11 +595,6 @@ class DequeTests(TranspileTestCase):
                 except TypeError as e:
                     print(e)
 
-                try:
-                    print(d * 123)
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
             except TypeError as e:
                 # not implemented in Python version < 3.5
                 print(e)
@@ -617,14 +616,16 @@ class DequeTests(TranspileTestCase):
                     print("should not print this")
                 except TypeError as e:
                     print(e)
-
-                try:
-                    d *= 123
-                    print("can't see this")
-                except TypeError as e:
-                    print(e)
             except TypeError as e:
                 # not implemented in Python version < 3.5
+                print(e)
+                
+            # TODO: this can be moved into try-catch suite above once 
+            #       #900 is resolved
+            try:
+                d *= 123
+                print("can't see this")
+            except TypeError as e:
                 print(e)
             """)
 
