@@ -554,24 +554,20 @@ class DequeTests(TranspileTestCase):
         self.assertCodeExecution("""
             import collections
 
+            d1 = collections.deque([1, 2, 3])
+            d2 = collections.deque([4, 5, 6])
+            print(d1 + d2)
+
             try:
-                d1 = collections.deque([1, 2, 3])
-                d2 = collections.deque([4, 5, 6])
-                print(d1 + d2)
+                print(d1 + "string")
+                print("should not print this")
+            except TypeError as e:
+                print(e)
 
-                try:
-                    print(d1 + "string")
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
-
-                try:
-                    print(d1 + 123)
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
-            except AttributeError as e:
-                # not implemented in Python version < 3.5
+            try:
+                print(d1 + 123)
+                print("should not print this")
+            except TypeError as e:
                 print(e)
             """)
 
@@ -579,25 +575,21 @@ class DequeTests(TranspileTestCase):
         self.assertCodeExecution("""
             import collections
 
+            d = collections.deque([1, 2, 3])
+            print(d * 5)
+            print(d * -5)
+            print(5 * d)
+
             try:
-                d = collections.deque([1, 2, 3])
-                print(d * 5)
-                print(d * -5)
-                print(5 * d)
+                print(d * "string")
+                print("should not print this")
+            except TypeError as e:
+                print(e)
 
-                try:
-                    print(d * "string")
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
-
-                try:
-                    print(d * 123)
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
-            except AttributeError as e:
-                # not implemented in Python version < 3.5
+            try:
+                print(d * 123)
+                print("should not print this")
+            except TypeError as e:
                 print(e)
             """)
 
@@ -605,26 +597,22 @@ class DequeTests(TranspileTestCase):
         self.assertCodeExecution("""
             import collections
 
+            d = collections.deque([1, 2, 3])
+            d *= 5
+            print(d)
+            d *= -1
+            print(d)
+
             try:
-                d = collections.deque([1, 2, 3])
-                d *= 5
-                print(d)
-                d *= -1
-                print(d)
+                d *= "string"
+                print("should not print this")
+            except TypeError as e:
+                print(e)
 
-                try:
-                    d *= "string"
-                    print("should not print this")
-                except TypeError as e:
-                    print(e)
-
-                try:
-                    d *= 123
-                    print("can't see this")
-                except TypeError as e:
-                    print(e)
-            except AttributeError as e:
-                # not implemented in Python version < 3.5
+            try:
+                d *= 123
+                print("can't see this")
+            except TypeError as e:
                 print(e)
             """)
 
