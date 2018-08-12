@@ -3,6 +3,10 @@ package org.python.types;
 public class Iterator extends org.python.types.Object implements org.python.Object {
     protected java.util.Iterator<org.python.Object> iterator;
 
+    public void set_iterator(java.util.Iterator<org.python.Object> iter) {
+        this.iterator = iter;
+    }
+
     public int hashCode() {
         return this.iterator.hashCode();
     }

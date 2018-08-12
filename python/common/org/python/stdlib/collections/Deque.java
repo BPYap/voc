@@ -191,7 +191,7 @@ public class Deque extends org.python.types.Object {
     )
     public org.python.Object __iter__() {
         org.python.types.Iterator iter = new org.python.types.Iterator();
-        iter.iterator = this.linkedList.listIterator(0);
+        iter.set_iterator(this.linkedList.listIterator(0));
         return iter;
     }
 
